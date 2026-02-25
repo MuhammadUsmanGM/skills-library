@@ -574,10 +574,10 @@ def generate_service(service_name: str, port: int) -> bool:
     }
     
     for path, content in files.items():
-        with open(path, 'w') as f:
+        with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"  ✓ Created {path}")
-    
+        print(f"  [OK] Created {path}")
+
     return True
 
 
@@ -588,22 +588,22 @@ def main():
     parser.add_argument("name", help="Service name (e.g., triage-service)")
     parser.add_argument("-p", "--port", type=int, default=8080,
                        help="Service port (default: 8080)")
-    
+
     args = parser.parse_args()
-    
+
     print(f"Generating {args.name} service...")
     print("=" * 50)
-    
+
     if generate_service(args.name, args.port):
         print("\n" + "=" * 50)
-        print(f"✓ Service '{args.name}' generated successfully!")
+        print(f"[OK] Service '{args.name}' generated successfully!")
         print(f"\nNext steps:")
         print(f"  cd {args.name}")
         print(f"  pip install -r requirements.txt")
         print(f"  dapr run --app-id {args.name} --app-port {args.port} python main.py")
         sys.exit(0)
     else:
-        print("\n✗ Failed to generate service")
+        print("\n[ERROR] Failed to generate service")
         sys.exit(1)
 
 
