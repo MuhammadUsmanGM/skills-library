@@ -1,0 +1,64 @@
+# Goose Recipe: FastAPI Dapr Agent Service
+# Works with Goose AI Agent (AAIF Standard)
+
+title: Create FastAPI + Dapr Microservice
+description: Generate and deploy FastAPI microservices with Dapr sidecar and AI agent integration
+version: 1.0.0
+
+prerequisites:
+  - Python 3.11+ installed
+  - Dapr CLI installed
+  - kubectl configured (for deployment)
+
+activities:
+  - name: generate-service
+    description: Generate FastAPI + Dapr service structure
+    steps:
+      - type: script
+        script: scripts/generate_service.py
+        args:
+          name: "${SERVICE_NAME}"
+          port: "${SERVICE_PORT}"
+      
+      - type: install
+        command: pip install -r ${SERVICE_NAME}/requirements.txt
+      
+      - type: test
+        script: ${SERVICE_NAME}/tests/test_main.py
+
+  - name: run-service
+    description: Run service with Dapr sidecar
+    steps:
+      - type: script
+        script: scripts/run_with_dapr.py
+        args:
+          service_name: "${SERVICE_NAME}"
+          port: "${SERVICE_PORT}"
+
+  - name: deploy-service
+    description: Deploy service to Kubernetes
+    steps:
+      - type: script
+        script: scripts/deploy.py
+        args:
+          service_name: "${SERVICE_NAME}"
+          namespace: apps
+
+extensions:
+  - name: dapr
+    type: sidecar
+    config:
+      appPort: "${SERVICE_PORT}"
+      pubsub: learnflow-pubsub
+      state: "${SERVICE_NAME}-state"
+
+outputs:
+  - service_name: "${SERVICE_NAME}"
+  - port: "${SERVICE_PORT}"
+  - k8s_deployment: apps/${SERVICE_NAME}
+
+validation:
+  - Service starts without errors
+  - Health endpoint returns 200
+  - Dapr sidecar attached
+  - Can publish/subscribe to events

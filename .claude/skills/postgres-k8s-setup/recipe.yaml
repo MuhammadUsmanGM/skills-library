@@ -1,0 +1,53 @@
+# Goose Recipe: PostgreSQL Kubernetes Setup
+# Works with Goose AI Agent (AAIF Standard)
+
+title: Deploy PostgreSQL on Kubernetes
+description: Deploy PostgreSQL database on Kubernetes with migrations and backup support
+version: 1.0.0
+
+prerequisites:
+  - kubectl configured and connected to cluster
+  - helm installed
+  - Docker running (for Minikube)
+
+activities:
+  - name: deploy-postgresql
+    description: Deploy PostgreSQL to Kubernetes cluster
+    steps:
+      - type: script
+        script: scripts/deploy.py
+        args:
+          namespace: database
+          password: "${DB_PASSWORD}"
+          database: learnflow
+          persistence: true
+      
+      - type: verify
+        script: scripts/verify.py
+        args:
+          namespace: database
+      
+      - type: migrate
+        script: scripts/migration_manager.py
+        args:
+          action: apply
+          namespace: database
+
+extensions:
+  - name: postgresql
+    type: database
+    config:
+      host: postgresql.database.svc.cluster.local
+      port: 5432
+      database: learnflow
+
+outputs:
+  - namespace: database
+  - service: postgresql
+  - connection_string: postgresql://user:password@postgresql.database:5432/learnflow
+
+validation:
+  - PostgreSQL pod in Running state
+  - Can connect to database
+  - Migrations applied successfully
+  - Data persisted after restart

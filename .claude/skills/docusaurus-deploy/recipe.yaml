@@ -1,0 +1,73 @@
+# Goose Recipe: Docusaurus Documentation Deployment
+# Works with Goose AI Agent (AAIF Standard)
+
+title: Deploy Docusaurus Documentation Site
+description: Initialize, build, and deploy Docusaurus documentation sites to Kubernetes
+version: 1.0.0
+
+prerequisites:
+  - Node.js 20+ installed
+  - Docker installed
+  - kubectl configured
+  - Helm installed
+
+activities:
+  - name: initialize-docusaurus
+    description: Initialize Docusaurus site
+    steps:
+      - type: script
+        script: scripts/init_docusaurus.py
+        args:
+          site_name: "${SITE_NAME}"
+          title: "${SITE_TITLE}"
+      
+      - type: install
+        command: npm install
+        working_dir: "${SITE_NAME}"
+
+  - name: build-site
+    description: Build static documentation site
+    steps:
+      - type: script
+        script: scripts/build.py
+        args:
+          site_name: "${SITE_NAME}"
+      
+      - type: test
+        command: npm run build
+        working_dir: "${SITE_NAME}"
+
+  - name: deploy
+    description: Deploy to Kubernetes
+    steps:
+      - type: script
+        script: scripts/deploy.py
+        args:
+          site_name: "${SITE_NAME}"
+          namespace: docs
+      
+      - type: verify
+        script: scripts/verify.py
+        args:
+          site_name: "${SITE_NAME}"
+          namespace: docs
+
+  - name: configure-ingress
+    description: Configure ingress for external access
+    steps:
+      - type: script
+        script: scripts/create_ingress.py
+        args:
+          site_name: "${SITE_NAME}"
+          domain: "${DOMAIN}"
+
+outputs:
+  - site_name: "${SITE_NAME}"
+  - namespace: docs
+  - url: "https://${DOMAIN}"
+
+validation:
+  - Site builds without errors
+  - Pod is Running
+  - Site accessible via browser
+  - Search working (if configured)

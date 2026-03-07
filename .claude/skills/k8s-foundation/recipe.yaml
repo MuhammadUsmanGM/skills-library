@@ -1,0 +1,70 @@
+# Goose Recipe: Kubernetes Foundation Operations
+# Works with Goose AI Agent (AAIF Standard)
+
+title: Kubernetes Foundation Operations
+description: Check cluster health and apply Helm charts for Kubernetes operations
+version: 1.0.0
+
+prerequisites:
+  - kubectl installed and configured
+  - helm installed
+  - Access to Kubernetes cluster
+
+activities:
+  - name: check-cluster-health
+    description: Verify cluster is healthy
+    steps:
+      - type: script
+        script: scripts/health_check.py
+      
+      - type: verify
+        description: All nodes Ready
+
+  - name: apply-helm-chart
+    description: Apply Helm chart to cluster
+    steps:
+      - type: script
+        script: scripts/helm_ops.py
+        args:
+          action: add-repo
+          repo_name: "${REPO_NAME}"
+          repo_url: "${REPO_URL}"
+      
+      - type: script
+        script: scripts/helm_ops.py
+        args:
+          action: update
+      
+      - type: script
+        script: scripts/helm_ops.py
+        args:
+          action: install
+          chart: "${CHART}"
+          name: "${RELEASE_NAME}"
+          namespace: "${NAMESPACE}"
+      
+      - type: verify
+        script: scripts/verify_installation.py
+        args:
+          release_name: "${RELEASE_NAME}"
+          namespace: "${NAMESPACE}"
+
+  - name: manage-namespace
+    description: Create or manage namespace
+    steps:
+      - type: script
+        script: scripts/namespace_manager.py
+        args:
+          action: create
+          name: "${NAMESPACE}"
+
+outputs:
+  - cluster_status: healthy
+  - chart_deployed: "${RELEASE_NAME}"
+  - namespace: "${NAMESPACE}"
+
+validation:
+  - Cluster is healthy (all nodes Ready)
+  - Helm is configured
+  - Target namespace exists
+  - Chart deployed successfully

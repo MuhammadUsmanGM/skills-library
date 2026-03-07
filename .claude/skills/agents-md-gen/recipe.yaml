@@ -1,0 +1,44 @@
+# Goose Recipe: AGENTS.md Generator
+# Works with Goose AI Agent (AAIF Standard)
+
+title: Generate AGENTS.md File
+description: Generate AGENTS.md files for repositories to document structure and conventions
+version: 1.0.0
+
+prerequisites:
+  - Python 3.11+ installed
+  - Repository with code structure
+
+activities:
+  - name: scan-repository
+    description: Scan repository structure
+    steps:
+      - type: script
+        script: scripts/generate_agents_md.py
+        args:
+          repo_path: "${REPO_PATH}"
+      
+      - type: analyze
+        description: Detect technology stack
+      
+      - type: generate
+        description: Generate AGENTS.md content
+
+  - name: review-output
+    description: Review generated AGENTS.md
+    steps:
+      - type: display
+        file: AGENTS.md
+      
+      - type: edit
+        description: Make any necessary adjustments
+
+outputs:
+  - file: AGENTS.md
+  - location: Repository root
+
+validation:
+  - AGENTS.md created in repository root
+  - Structure accurately reflects codebase
+  - Conventions documented clearly
+  - AI agent guidelines included

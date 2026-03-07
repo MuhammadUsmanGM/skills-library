@@ -1,0 +1,80 @@
+# Goose Recipe: Next.js Kubernetes Deployment
+# Works with Goose AI Agent (AAIF Standard)
+
+title: Deploy Next.js Application to Kubernetes
+description: Build and deploy Next.js applications to Kubernetes with optimized Docker images
+version: 1.0.0
+
+prerequisites:
+  - Node.js 20+ installed
+  - Docker installed
+  - kubectl configured
+  - Helm installed
+
+activities:
+  - name: generate-deployment
+    description: Generate Kubernetes deployment files
+    steps:
+      - type: script
+        script: scripts/generate_deployment.py
+        args:
+          app_name: "${APP_NAME}"
+          port: 3000
+      
+      - type: build
+        command: npm install && npm run build
+        working_dir: "${APP_NAME}"
+      
+      - type: test
+        command: npm test
+        working_dir: "${APP_NAME}"
+
+  - name: build-image
+    description: Build Docker image
+    steps:
+      - type: script
+        script: scripts/build_image.py
+        args:
+          app_name: "${APP_NAME}"
+
+  - name: deploy
+    description: Deploy to Kubernetes
+    steps:
+      - type: script
+        script: scripts/deploy.py
+        args:
+          app_name: "${APP_NAME}"
+          namespace: apps
+      
+      - type: verify
+        script: scripts/verify.py
+        args:
+          app_name: "${APP_NAME}"
+          namespace: apps
+
+  - name: configure-ingress
+    description: Configure ingress for external access
+    steps:
+      - type: script
+        script: scripts/create_ingress.py
+        args:
+          app_name: "${APP_NAME}"
+          domain: "${DOMAIN}"
+
+extensions:
+  - name: nextjs
+    type: frontend
+    config:
+      port: 3000
+      output: standalone
+
+outputs:
+  - app_name: "${APP_NAME}"
+  - namespace: apps
+  - url: "https://${DOMAIN}"
+
+validation:
+  - Docker image builds successfully
+  - Pod is Running
+  - Service accessible via port-forward
+  - Health check passes

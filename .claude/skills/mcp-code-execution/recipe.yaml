@@ -1,0 +1,62 @@
+# Goose Recipe: MCP Code Execution Pattern
+# Works with Goose AI Agent (AAIF Standard)
+
+title: MCP Code Execution Integration
+description: Implement MCP Code Execution pattern for token-efficient AI agent operations
+version: 1.0.0
+
+prerequisites:
+  - Python 3.11+ installed
+  - requests library installed
+  - MCP server running (optional)
+
+activities:
+  - name: create-mcp-wrapper
+    description: Create MCP client wrapper for a server
+    steps:
+      - type: script
+        script: scripts/create_mcp_wrapper.py
+        args:
+          server_name: "${SERVER_NAME}"
+      
+      - type: configure
+        file: scripts/${SERVER_NAME}_client.py
+        description: Configure MCP endpoints
+
+  - name: execute-mcp-operation
+    description: Execute MCP operation with minimal tokens
+    steps:
+      - type: script
+        script: scripts/mcp_client.py
+        args:
+          command: call
+          server: "${SERVER_URL}"
+          tool: "${TOOL_NAME}"
+      
+      - type: verify
+        description: Verify minimal token usage
+
+  - name: test-token-efficiency
+    description: Demonstrate token efficiency
+    steps:
+      - type: script
+        script: scripts/mcp_client.py
+        args:
+          command: demo
+
+extensions:
+  - name: mcp
+    type: protocol
+    config:
+      jsonrpc: "2.0"
+      timeout: 30
+
+outputs:
+  - wrapper_script: scripts/${SERVER_NAME}_client.py
+  - token_savings: "99%+ reduction"
+
+validation:
+  - Wrapper script executes without errors
+  - Returns minimal, formatted output
+  - No large data in agent context
+  - Error handling works correctly

@@ -1,0 +1,49 @@
+# Goose Recipe: Kafka Kubernetes Setup
+# Works with Goose AI Agent (AAIF Standard)
+
+title: Deploy Apache Kafka on Kubernetes
+description: Deploy Apache Kafka on Kubernetes using Helm with configurable replicas and persistence
+version: 1.0.0
+
+prerequisites:
+  - kubectl configured and connected to cluster
+  - helm installed
+  - Docker running (for Minikube)
+
+activities:
+  - name: deploy-kafka
+    description: Deploy Kafka to Kubernetes cluster
+    steps:
+      - type: script
+        script: scripts/deploy.py
+        args:
+          namespace: kafka
+          replicas: 1
+          persistence: false
+      
+      - type: verify
+        script: scripts/verify.py
+        args:
+          namespace: kafka
+      
+      - type: test
+        script: scripts/test_connection.py
+        args:
+          namespace: kafka
+
+extensions:
+  - name: kafka
+    type: mcp
+    config:
+      brokers: kafka-headless.kafka:9092
+
+outputs:
+  - namespace: kafka
+  - service: kafka
+  - bootstrap_server: localhost:9092
+
+validation:
+  - All Kafka pods in Running state
+  - Zookeeper pods healthy
+  - Can create and list topics
+  - Producer/consumer test successful
